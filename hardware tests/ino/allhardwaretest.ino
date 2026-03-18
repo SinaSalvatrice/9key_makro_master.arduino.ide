@@ -365,7 +365,7 @@ void loop() {
     selectorLastChange = now;
   }
 
-  if ((now - selectorLastChange) > DEBOUNCE_MS) {
+  if ((uint32_t)(now - selectorLastChange) >= DEBOUNCE_MS) {
     if (stableSelector != rawSelector) {
       stableSelector = rawSelector;
 
@@ -388,7 +388,7 @@ void loop() {
         lastChange[r][c] = now;
       }
 
-      if ((now - lastChange[r][c]) > DEBOUNCE_MS) {
+      if ((uint32_t)(now - lastChange[r][c]) >= DEBOUNCE_MS) {
         if (stableState[r][c] != rawState[r][c]) {
           stableState[r][c] = rawState[r][c];
 

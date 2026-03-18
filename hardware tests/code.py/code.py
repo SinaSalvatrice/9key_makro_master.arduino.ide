@@ -1,9 +1,9 @@
+import busio
 import board
 import digitalio
+import rotaryio
 import time
 import neopixel
-import rotaryio
-import busio
 import adafruit_ssd1306
 
 # Matrix pins
