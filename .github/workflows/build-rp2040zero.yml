@@ -1,0 +1,35 @@
+name: Build RP2040 Zero Firmware
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+        with:
+          version: latest
+
+      - name: Install RP2040 board package
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install rp2040:rp2040
+
+      - name: Build allhardwaretest.ino
+        run: |
+          arduino-cli compile --fqbn rp2040:rp2040:rp2040zero "hardware tests/ino/allhardwaretest.ino" --output-dir hardware tests/ino/build
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rp2040zero-firmware
+          path: hardware tests/ino/build/*
