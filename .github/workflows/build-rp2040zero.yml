@@ -27,7 +27,7 @@ jobs:
 
       - name: Build allhardwaretest.ino
         run: |
-          arduino-cli compile --fqbn arduino:mbed_rp2040:rp2040 --output-dir="hardware tests/ino/build" "hardware tests/ino/allhardwaretest.ino"
+          arduino-cli compile --fqbn arduino:mbed_rp2040:rp2040 --output-dir="hardware tests/ino/build" "hardware tests/ino/allhardwaretest"
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
