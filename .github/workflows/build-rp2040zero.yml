@@ -14,6 +14,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download latest Arduino CLI
+        run: |
+          wget https://downloads.arduino.cc/arduino-cli/latest/arduino-cli_latest_Linux_64bit.tar.gz -O arduino-cli.tar.gz
+          tar -xzf arduino-cli.tar.gz
+          sudo mv arduino-cli /usr/local/bin/
+          arduino-cli version
+        shell: bash
+
       - name: Set up Arduino CLI
         uses: arduino/setup-arduino-cli@v1
         with:
