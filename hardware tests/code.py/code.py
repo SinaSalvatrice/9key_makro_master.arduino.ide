@@ -1,3 +1,5 @@
+# MacroPad scan direction: rows are outputs, columns are inputs with pull-ups.
+# The library activates each row and reads each column for pressed keys.
 # pylint: disable=import-error, unused-import, too-few-public-methods
 
 import os
