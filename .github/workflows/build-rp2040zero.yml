@@ -20,14 +20,14 @@ jobs:
         with:
           version: 0.32.3
 
-      - name: Install Arduino mbed RP2040 board package
+      - name: Install EarlePhilhower Pico RP2040 core
         run: |
           arduino-cli core update-index
-          arduino-cli core install arduino:mbed_rp2040
+          arduino-cli core install earlephilhower:rp2040
 
       - name: Build allhardwaretest.ino
         run: |
-          arduino-cli compile --fqbn arduino:mbed_rp2040:pico --output-dir="hardware tests/ino/build" "hardware tests/ino/allhardwaretest"
+          arduino-cli compile --fqbn earlephilhower:rp2040:pico --output-dir="hardware tests/ino/build" "hardware tests/ino/allhardwaretest"
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
