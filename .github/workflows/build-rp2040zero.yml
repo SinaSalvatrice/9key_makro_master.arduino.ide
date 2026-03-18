@@ -20,14 +20,14 @@ jobs:
         with:
           version: 0.32.3
 
-      - name: Install RP2040 board package
+      - name: Install Arduino mbed RP2040 board package
         run: |
           arduino-cli core update-index
-          arduino-cli core install rp2040:rp2040
+          arduino-cli core install arduino:mbed_rp2040
 
       - name: Build allhardwaretest.ino
         run: |
-          arduino-cli compile --fqbn rp2040:rp2040:rp2040zero "hardware tests/ino/allhardwaretest.ino" --output-dir hardware tests/ino/build
+          arduino-cli compile --fqbn arduino:mbed_rp2040:rp2040 "hardware tests/ino/allhardwaretest.ino" --output-dir hardware tests/ino/build
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
