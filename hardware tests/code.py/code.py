@@ -98,7 +98,7 @@ for filename in files:
             NameError,
             IndexError,
             TypeError,
-        ) as err:
+        ):
             pass
 
 if not apps:
