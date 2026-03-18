@@ -18,7 +18,7 @@ jobs:
       - name: Set up Arduino CLI
         uses: arduino/setup-arduino-cli@v1
         with:
-          version: latest
+          version: 0.32.3
 
       - name: Install RP2040 board package
         run: |
