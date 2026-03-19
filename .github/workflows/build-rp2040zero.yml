@@ -20,6 +20,12 @@ jobs:
         with:
           version: 0.32.3
 
+      - name: Download EarlePhilhower RP2040 global package
+        run: |
+          wget https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040
+          mkdir -p ~/.arduino15/packages/earlephilhower/hardware/rp2040/global
+          mv package_rp2040 ~/.arduino15/packages/earlephilhower/hardware/rp2040/global/
+
       - name: Install EarlePhilhower Pico RP2040 core
         run: |
           arduino-cli core update-index
