@@ -97,6 +97,18 @@ void loop() {
   uint32_t now = millis();
   bool scanNow[ROWS][COLS];
   scanMatrix(scanNow);
+
+  // Serial debug output for matrix state
+  Serial.print("Matrix scan: ");
+  for (uint8_t r = 0; r < ROWS; r++) {
+    for (uint8_t c = 0; c < COLS; c++) {
+      Serial.print(scanNow[r][c] ? "1" : "0");
+      Serial.print(" ");
+    }
+    Serial.print("| ");
+  }
+  Serial.println();
+
   for (uint8_t r = 0; r < ROWS; r++) {
     for (uint8_t c = 0; c < COLS; c++) {
       if (scanNow[r][c] != rawState[r][c]) {
