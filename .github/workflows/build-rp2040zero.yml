@@ -20,19 +20,17 @@ jobs:
         with:
           version: 0.32.3
 
-      - name: Add EarlePhilhower board index
+      - name: Configure Arduino CLI and update board index
         run: |
           arduino-cli config init
           arduino-cli config set board_manager.additional_urls https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
-      - name: Update board index
-        run: |
           arduino-cli core update-index
 
       # Removed manual download step; arduino-cli handles core installation
 
       - name: Install rp2040 platform (EarlePhilhower)
         run: |
-          arduino-cli core install earlephilhower:rp2040
+          arduino-cli core install earlephilhower:rp2040 || (echo "Core install failed" && arduino-cli core list && arduino-cli config dump)
       - name: List installed cores
         run: |
           arduino-cli core list
