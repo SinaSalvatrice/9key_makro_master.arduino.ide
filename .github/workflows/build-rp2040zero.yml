@@ -28,6 +28,9 @@ jobs:
       - name: Update board index
         run: arduino-cli core update-index
 
+      - name: Search for rp2040 core
+        run: arduino-cli core search rp2040
+
       - name: Install rp2040 platform
         run: arduino-cli core install earlephilhower:rp2040
 
