@@ -32,10 +32,10 @@ jobs:
         run: arduino-cli core search rp2040
 
       - name: Install rp2040 platform
-        run: arduino-cli core install earlephilhower:rp2040
+        run: arduino-cli core install rp2040:rp2040
 
       - name: Build allhardwaretest.ino
-        run: arduino-cli compile --fqbn earlephilhower:rp2040:waveshare_rp2040_zero --output-dir="hardware tests/ino/build" "hardware tests/ino/allhardwaretest"
+        run: arduino-cli compile --fqbn rp2040:rp2040:waveshare_rp2040_zero --output-dir="hardware tests/ino/build" "hardware tests/ino/allhardwaretest"
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
