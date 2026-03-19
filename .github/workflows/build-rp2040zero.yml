@@ -33,6 +33,12 @@ jobs:
       - name: Install rp2040 platform (EarlePhilhower)
         run: |
           arduino-cli core install earlephilhower:rp2040
+      - name: List installed cores
+        run: |
+          arduino-cli core list
+      - name: Show Arduino CLI config
+        run: |
+          arduino-cli config dump
 
       - name: Build allhardwaretest.ino
         run: |
