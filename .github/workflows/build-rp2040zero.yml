@@ -11,6 +11,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+            - name: Verify board manager URL accessibility
+              run: |
+                curl -v https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
       - name: Checkout repository
         uses: actions/checkout@v4
 
