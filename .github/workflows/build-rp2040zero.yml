@@ -27,7 +27,7 @@ jobs:
 
       # Removed manual download step; arduino-cli handles core installation
 
-      - name: Install EarlePhilhower Pico RP2040 core
+      - name: Install rp2040 platform (EarlePhilhower)
         run: |
           arduino-cli core update-index
           arduino-cli core install earlephilhower:rp2040
