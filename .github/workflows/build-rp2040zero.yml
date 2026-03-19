@@ -27,9 +27,15 @@ jobs:
       - name: Print Arduino CLI config
         run: |
           arduino-cli config dump
+      - name: Clear Arduino CLI cache
+        run: |
+          rm -rf /home/runner/.arduino15/staging
       - name: Update board index
         run: |
           arduino-cli core update-index
+      - name: Search for rp2040 core
+        run: |
+          arduino-cli core search rp2040
 
       # Removed manual download step; arduino-cli handles core installation
 
