@@ -11,8 +11,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-            - name: Curl board manager URL
-              run: curl -s https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json | head -20
       - name: Checkout repository
         uses: actions/checkout@v4
 
