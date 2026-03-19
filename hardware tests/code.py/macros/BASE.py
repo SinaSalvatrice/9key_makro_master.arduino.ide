@@ -1,0 +1,15 @@
+app = {
+    "name": "BASE",
+    "macros": [
+        # [LED color, label, sequence]
+        [0x0000FF, "WinTab", [0xE3, 0x2B]],
+        [0x00FF00, "Up", [0x52]],
+        [0xFF0000, "AltTab", [0xE2, 0x2B]],
+        [0xFFFF00, "Left", [0x50]],
+        [0x00FFFF, "Enter", [0x28]],
+        [0xFF00FF, "Right", [0x4F]],
+        [0xFFFFFF, "CtrlZ", [0xE0, 0x1A]],
+        [0x888888, "Down", [0x51]],
+        [0xFF8800, "CtrlR", [0xE0, 0x15]]
+    ]
+}
