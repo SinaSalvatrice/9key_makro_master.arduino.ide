@@ -19,6 +19,9 @@ jobs:
         with:
           version: 0.32.3
 
+      - name: Initialize Arduino CLI config
+        run: arduino-cli config init
+
       - name: Set board manager URL
         run: arduino-cli config set board_manager.additional_urls "https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json"
 
