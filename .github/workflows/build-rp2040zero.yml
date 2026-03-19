@@ -22,7 +22,7 @@ jobs:
 
       - name: Download EarlePhilhower RP2040 global package
         run: |
-          wget https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040
+          wget https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
           mkdir -p ~/.arduino15/packages/earlephilhower/hardware/rp2040/global
           mv package_rp2040 ~/.arduino15/packages/earlephilhower/hardware/rp2040/global/
 
