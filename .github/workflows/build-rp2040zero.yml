@@ -20,10 +20,15 @@ jobs:
         with:
           version: 0.32.3
 
-      - name: Configure Arduino CLI and update board index
+      - name: Configure Arduino CLI
         run: |
           arduino-cli config init
           arduino-cli config set board_manager.additional_urls https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+      - name: Print Arduino CLI config
+        run: |
+          arduino-cli config dump
+      - name: Update board index
+        run: |
           arduino-cli core update-index
 
       # Removed manual download step; arduino-cli handles core installation
