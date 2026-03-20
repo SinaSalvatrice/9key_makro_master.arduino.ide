@@ -24,6 +24,9 @@ jobs:
 
       - name: Set board manager URL
         run: arduino-cli config set board_manager.additional_urls "https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json"
+        
+      - name: Install Adafruit_GFX library
+        run: arduino-cli lib install "Adafruit GFX Library"
 
       - name: Update board index
         run: arduino-cli core update-index
