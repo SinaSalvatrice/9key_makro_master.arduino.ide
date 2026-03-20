@@ -1,130 +1,213 @@
-// =====================================================
-#include <Keyboard.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_NeoPixel.h>
 
-// Move ActionType and Action struct to top for Arduino IDE compatibility
-enum ActionType : uint8_t {
-  ACT_NONE,
-  ACT_KEY,
-  ACT_RGB,
-  ACT_MEDIA_PLACEHOLDER
-};
+// =========================
+// PIN CONFIG
+// =========================
+#define SDA_PIN 0
+#define SCL_PIN 1
 
-struct Action {
-  ActionType type;
-  uint8_t keycode;
-  uint8_t mod1;
-  uint8_t mod2;
-  uint8_t aux;
-};
-
-// =====================================================
-// Hardware
-
-#include <Keyboard.h>
+#define RGB_PIN 13
+#define NUM_PIXELS 1
 
 const uint8_t ROWS = 3;
 const uint8_t COLS = 3;
+
 const uint8_t rowPins[ROWS] = {2, 4, 3};
-const uint8_t colPins[COLS] = {8, 9, 27};
-const uint16_t DEBOUNCE_MS = 20;
+const uint8_t colPins[COLS] = {5, 6, 7};
 
-// Simple 1-9 key mapping for 3x3 matrix
-const uint8_t keymap[3][3] = {
-  { '1', '2', '3' },
-  { '4', '5', '6' },
-  { '7', '8', '9' }
-};
+const uint8_t ENC_A = 8;
+const uint8_t ENC_B = 9;
+const uint8_t ENC_BTN = 10;
 
-bool rawState[ROWS][COLS];
-bool stableState[ROWS][COLS];
-uint32_t lastChange[ROWS][COLS];
-bool suppressUntilRelease[ROWS][COLS];
+// =========================
+// DISPLAY
+// =========================
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_ADDR 0x3C
 
-void setAllRowsInactive() {
-  for (uint8_t r = 0; r < ROWS; r++) {
-    digitalWrite(rowPins[r], HIGH);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+Adafruit_NeoPixel pixels(NUM_PIXELS, RGB_PIN, NEO_GRB + NEO_KHZ800);
+
+// =========================
+// STATE
+// =========================
+bool lastMatrix[ROWS][COLS];
+int lastA = HIGH;
+int lastBtn = HIGH;
+long encPos = 0;
+String lastEvent = "BOOT";
+
+void setRgbMode(long pos) {
+  int mode = ((pos % 4) + 4) % 4;
+
+  if (mode == 0) {
+    pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+  } else if (mode == 1) {
+    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+  } else if (mode == 2) {
+    pixels.setPixelColor(0, pixels.Color(0, 0, 255));
+  } else {
+    pixels.setPixelColor(0, pixels.Color(0, 0, 0));
   }
+  pixels.show();
 }
 
-void scanMatrix(bool out[ROWS][COLS]) {
-  setAllRowsInactive();
-  for (uint8_t r = 0; r < ROWS; r++) {
-    digitalWrite(rowPins[r], LOW);
-    delayMicroseconds(5);
-    for (uint8_t c = 0; c < COLS; c++) {
-      out[r][c] = (digitalRead(colPins[c]) == LOW);
-    }
-    digitalWrite(rowPins[r], HIGH);
-  }
-}
-
-void onKeyPressed(uint8_t r, uint8_t c) {
-  if (suppressUntilRelease[r][c]) return;
-  Keyboard.press(keymap[r][c]);
-}
-
-void onKeyReleased(uint8_t r, uint8_t c) {
-  if (!suppressUntilRelease[r][c]) {
-    Keyboard.release(keymap[r][c]);
-  }
-  suppressUntilRelease[r][c] = false;
+void updateDisplay() {
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println("ALL OK");
+  display.print("ENC: ");
+  display.println(encPos);
+  display.print("BTN: ");
+  display.println(digitalRead(ENC_BTN) == LOW ? "DOWN" : "UP");
+  display.print("LAST: ");
+  display.println(lastEvent);
+  display.display();
 }
 
 void setup() {
   Serial.begin(115200);
-  Keyboard.begin();
-  for (uint8_t r = 0; r < ROWS; r++) {
-    pinMode(rowPins[r], OUTPUT);
-    digitalWrite(rowPins[r], HIGH);
+  delay(500);
+  Serial.println("ALL-IN-ONE TEST START");
+
+  // RGB
+  pixels.begin();
+  pixels.clear();
+  pixels.show();
+
+  // Display
+  Wire.setSDA(SDA_PIN);
+  Wire.setSCL(SCL_PIN);
+  Wire.begin();
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+    Serial.println("SSD1306 init failed");
+    while (1) delay(10);
   }
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+
+  // =========================
+  // MATRIX (umgedrehte Scanrichtung)
+  // Cols = OUTPUT, idle HIGH
+  // Rows = INPUT_PULLUP
+  // Active col = LOW
+  // Pressed = LOW auf Row
+  // =========================
   for (uint8_t c = 0; c < COLS; c++) {
-    pinMode(colPins[c], INPUT_PULLUP);
+    pinMode(colPins[c], OUTPUT);
+    digitalWrite(colPins[c], HIGH);
   }
-  bool initialScan[ROWS][COLS];
-  scanMatrix(initialScan);
+
+  for (uint8_t r = 0; r < ROWS; r++) {
+    pinMode(rowPins[r], INPUT_PULLUP);
+  }
+
   for (uint8_t r = 0; r < ROWS; r++) {
     for (uint8_t c = 0; c < COLS; c++) {
-      rawState[r][c] = initialScan[r][c];
-      stableState[r][c] = initialScan[r][c];
-      lastChange[r][c] = millis();
-      suppressUntilRelease[r][c] = stableState[r][c];
+      lastMatrix[r][c] = false;
     }
   }
-  Serial.println("RP2040 matrix keyboard ready");
+
+  // Encoder
+  pinMode(ENC_A, INPUT_PULLUP);
+  pinMode(ENC_B, INPUT_PULLUP);
+  pinMode(ENC_BTN, INPUT_PULLUP);
+
+  lastA = digitalRead(ENC_A);
+  lastBtn = digitalRead(ENC_BTN);
+
+  setRgbMode(0);
+  updateDisplay();
 }
 
 void loop() {
-  uint32_t now = millis();
-  bool scanNow[ROWS][COLS];
-  scanMatrix(scanNow);
+  // =========================
+  // MATRIX
+  // =========================
+  bool currentMatrix[ROWS][COLS] = {false};
 
-  // Serial debug output for matrix state
-  Serial.print("Matrix scan: ");
-  for (uint8_t r = 0; r < ROWS; r++) {
-    for (uint8_t c = 0; c < COLS; c++) {
-      Serial.print(scanNow[r][c] ? "1" : "0");
-      Serial.print(" ");
+  for (uint8_t c = 0; c < COLS; c++) {
+    digitalWrite(colPins[c], LOW);   // diese Column aktiv
+    delayMicroseconds(50);
+
+    for (uint8_t r = 0; r < ROWS; r++) {
+      currentMatrix[r][c] = (digitalRead(rowPins[r]) == LOW);
     }
-    Serial.print("| ");
+
+    digitalWrite(colPins[c], HIGH);  // Column wieder deaktivieren
   }
-  Serial.println();
 
   for (uint8_t r = 0; r < ROWS; r++) {
     for (uint8_t c = 0; c < COLS; c++) {
-      if (scanNow[r][c] != rawState[r][c]) {
-        rawState[r][c] = scanNow[r][c];
-        lastChange[r][c] = now;
-      }
-      if ((uint32_t)(now - lastChange[r][c]) >= DEBOUNCE_MS) {
-        if (stableState[r][c] != rawState[r][c]) {
-          stableState[r][c] = rawState[r][c];
-          if (stableState[r][c]) {
-            onKeyPressed(r, c);
-          } else {
-            onKeyReleased(r, c);
-          }
+      if (currentMatrix[r][c] != lastMatrix[r][c]) {
+        if (currentMatrix[r][c]) {
+          Serial.print("PRESS   r=");
+          Serial.print(r);
+          Serial.print(" c=");
+          Serial.println(c);
+          lastEvent = "KEY " + String(r) + "," + String(c);
+        } else {
+          Serial.print("RELEASE r=");
+          Serial.print(r);
+          Serial.print(" c=");
+          Serial.println(c);
+          lastEvent = "REL " + String(r) + "," + String(c);
         }
+        lastMatrix[r][c] = currentMatrix[r][c];
       }
     }
   }
+
+  // =========================
+  // ENCODER
+  // =========================
+  int a = digitalRead(ENC_A);
+  int b = digitalRead(ENC_B);
+
+  if (a != lastA) {
+    if (a == LOW) {
+      if (b == HIGH) {
+        encPos++;
+        Serial.print("ENC CW  pos=");
+        Serial.println(encPos);
+        lastEvent = "ENC CW";
+      } else {
+        encPos--;
+        Serial.print("ENC CCW pos=");
+        Serial.println(encPos);
+        lastEvent = "ENC CCW";
+      }
+      setRgbMode(encPos);
+    }
+    lastA = a;
+  }
+
+  // =========================
+  // BUTTON
+  // =========================
+  int btn = digitalRead(ENC_BTN);
+  if (btn != lastBtn) {
+    if (btn == LOW) {
+      Serial.println("BTN DOWN");
+      lastEvent = "BTN DOWN";
+      pixels.setPixelColor(0, pixels.Color(255, 255, 255));
+      pixels.show();
+    } else {
+      Serial.println("BTN UP");
+      lastEvent = "BTN UP";
+      setRgbMode(encPos);
+    }
+    lastBtn = btn;
+    delay(20);
+  }
+
+  updateDisplay();
+  delay(20);
 }
