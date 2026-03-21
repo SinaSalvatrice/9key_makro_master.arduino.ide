@@ -1,3 +1,5 @@
+      - name: List files in workspace
+        run: ls -lR
 name: Build RP2040 Zero Firmware
 
 on:
