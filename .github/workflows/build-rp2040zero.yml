@@ -31,6 +31,10 @@ jobs:
       - name: Install Adafruit_SSD1306 library
         run: arduino-cli lib install "Adafruit SSD1306"
 
+    
+      - name: Install HID-Project library
+        run: arduino-cli lib install "HID-Project"
+
       - name: Install Adafruit_NeoPixel library
         run: arduino-cli lib install "Adafruit NeoPixel"
 
