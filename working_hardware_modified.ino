@@ -631,26 +631,26 @@ void setup() {
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
 
-  // Matrix: rows OUTPUT idle-HIGH, cols INPUT_PULLUP
+  // Matrix: rows OUTPUT idle-LOW, cols INPUT_PULLDOWN
   for (uint8_t r = 0; r < ROWS; r++) {
     pinMode(rowPins[r], OUTPUT);
-    digitalWrite(rowPins[r], HIGH);
+    digitalWrite(rowPins[r], LOW);
   }
   for (uint8_t c = 0; c < COLS; c++) {
-    pinMode(colPins[c], INPUT_PULLUP);
+    pinMode(colPins[c], INPUT_PULLDOWN);
   }
   // Seed debounce state from an initial scan
   uint32_t now = millis();
   for (uint8_t r = 0; r < ROWS; r++) {
-    digitalWrite(rowPins[r], LOW);
-    delayMicroseconds(50);
+    digitalWrite(rowPins[r], HIGH);
+    delayMicroseconds(500);
     for (uint8_t c = 0; c < COLS; c++) {
-      bool v = (digitalRead(colPins[c]) == LOW);
+      bool v = (digitalRead(colPins[c]) == HIGH);
       rawState[r][c]     = v;
       stableState[r][c]  = v;
       lastChangeMs[r][c] = now;
     }
-    digitalWrite(rowPins[r], HIGH);
+    digitalWrite(rowPins[r], LOW);
   }
 
   // Encoder
@@ -682,12 +682,12 @@ void loop() {
   // -- MATRIX SCAN + DEBOUNCE ----------------------------------
   bool scan[ROWS][COLS] = {};
   for (uint8_t r = 0; r < ROWS; r++) {
-    digitalWrite(rowPins[r], LOW);
-    delayMicroseconds(50);
-    for (uint8_t c = 0; c < COLS; c++) {
-      scan[r][c] = (digitalRead(colPins[c]) == LOW);
-    }
     digitalWrite(rowPins[r], HIGH);
+    delayMicroseconds(500);
+    for (uint8_t c = 0; c < COLS; c++) {
+      scan[r][c] = (digitalRead(colPins[c]) == HIGH);
+    }
+    digitalWrite(rowPins[r], LOW);
   }
 
   for (uint8_t r = 0; r < ROWS; r++) {
