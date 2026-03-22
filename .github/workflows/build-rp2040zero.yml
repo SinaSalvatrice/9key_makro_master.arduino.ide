@@ -1,39 +1,39 @@
+name: Build RP2040 Zero Firmware
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: List files in workspace
         run: ls -lR
-        name: Build RP2040 Zero Firmware
-
-        on:
-        push:
-        branches: [ main ]
-        pull_request:
-        branches: [ main ]
-        workflow_dispatch:
-
-        jobs:
-        build:
-        runs-on: ubuntu-latest
-       steps:
-       - name: Checkout repository
-        uses: actions/checkout@v4
 
       - name: Set up Arduino CLI
         uses: arduino/setup-arduino-cli@v1
         with:
-          version: 0.32.3
+          version: "0.32.3"
 
       - name: Initialize Arduino CLI config
         run: arduino-cli config init
 
       - name: Set board manager URL
         run: arduino-cli config set board_manager.additional_urls "https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json"
-        
+
       - name: Install Adafruit_GFX library
         run: arduino-cli lib install "Adafruit GFX Library"
 
       - name: Install Adafruit_SSD1306 library
         run: arduino-cli lib install "Adafruit SSD1306"
 
-    
       - name: Install HID-Project library
         run: arduino-cli lib install "HID-Project"
 
@@ -55,3 +55,9 @@
             --fqbn rp2040:rp2040:waveshare_rp2040_zero \
             --output-dir "9key_makro_master_Arduino.ide/build" \
             "./working_hardware_modified.ino"
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rp2040zero-firmware
+          path: 9key_makro_master_Arduino.ide/build/*.uf2
