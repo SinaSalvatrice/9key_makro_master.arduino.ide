@@ -54,7 +54,7 @@ jobs:
           arduino-cli compile \
             --fqbn rp2040:rp2040:waveshare_rp2040_zero \
             --output-dir "9key_makro_master_Arduino.ide/build" \
-            "./working_hardware_modified.ino"
+            "./9key_makro_master.arduino.ide.ino"
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
