@@ -1,19 +1,19 @@
       - name: List files in workspace
         run: ls -lR
-name: Build RP2040 Zero Firmware
+        name: Build RP2040 Zero Firmware
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+        on:
+        push:
+        branches: [ main ]
+        pull_request:
+        branches: [ main ]
+        workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
+        jobs:
+        build:
+        runs-on: ubuntu-latest
+       steps:
+       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Arduino CLI
