@@ -1,0 +1,88 @@
+name: Build UF2 Firmware
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Waveshare RP2040 Zero UF2
+    runs-on: ubuntu-latest
+
+    env:
+      FQBN: rp2040:rp2040:waveshare_rp2040_zero
+      BUILD_DIR: build
+      OUT_DIR: firmware
+      RP2040_INDEX_URL: https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Configure RP2040 core
+        run: |
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls "$RP2040_INDEX_URL"
+          arduino-cli core update-index
+          arduino-cli core install rp2040:rp2040
+
+      - name: Install libraries
+        run: |
+          arduino-cli lib update-index
+          arduino-cli lib install "Adafruit SSD1306"
+          arduino-cli lib install "Adafruit GFX Library"
+          arduino-cli lib install "Adafruit NeoPixel"
+
+      - name: Find Arduino sketch
+        id: sketch
+        shell: bash
+        run: |
+          SKETCH_FILE="$(find . -name '*.ino' -not -path './.git/*' | head -n 1)"
+
+          if [ -z "$SKETCH_FILE" ]; then
+            echo "No .ino file found."
+            exit 1
+          fi
+
+          SKETCH_DIR="$(dirname "$SKETCH_FILE")"
+
+          echo "Sketch file: $SKETCH_FILE"
+          echo "Sketch dir : $SKETCH_DIR"
+          echo "sketch_dir=$SKETCH_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Compile UF2
+        run: |
+          mkdir -p "$BUILD_DIR" "$OUT_DIR"
+
+          arduino-cli compile \
+            --fqbn "$FQBN" \
+            --build-path "$BUILD_DIR" \
+            --output-dir "$OUT_DIR" \
+            --export-binaries \
+            "${{ steps.sketch.outputs.sketch_dir }}"
+
+      - name: Verify UF2 exists
+        run: |
+          echo "Generated UF2 files:"
+          find "$OUT_DIR" "$BUILD_DIR" -type f -name '*.uf2' -print
+
+          UF2_COUNT="$(find "$OUT_DIR" "$BUILD_DIR" -type f -name '*.uf2' | wc -l)"
+
+          if [ "$UF2_COUNT" -eq 0 ]; then
+            echo "No UF2 file generated."
+            exit 1
+          fi
+
+      - name: Upload UF2 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macropad-rp2040-zero-uf2
+          path: |
+            firmware/**/*.uf2
+            build/**/*.uf2
+          if-no-files-found: error
