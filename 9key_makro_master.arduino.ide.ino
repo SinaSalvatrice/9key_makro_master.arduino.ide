@@ -36,11 +36,11 @@
 #define SDA_PIN    0
 #define SCL_PIN    1
 #define RGB_PIN   13
-#define NUM_PIXELS 10   // 9 key LEDs + 1 encoder-button indicator
+#define NUM_PIXELS 65  // 9 key LEDs + 1 encoder-button indicator
 
 const uint8_t ROWS = 3;
 const uint8_t COLS = 3;
-const uint8_t rowPins[ROWS] = {4, 3, 2};
+const uint8_t rowPins[ROWS] = {2, 3, 4};
 const uint8_t colPins[COLS] = {5, 6, 7};
 const uint8_t ENC_A   =  8;
 const uint8_t ENC_B   =  9;
